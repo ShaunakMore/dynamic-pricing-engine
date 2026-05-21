@@ -1,24 +1,21 @@
-import datetime
 import pandas as pd
 import random
-RANDOM_SEED = 42
+from src.utils import processDates
 
-def get_season(month:int) -> str:
+def generateTemporalFeatures(base_market_trend,market_trend_factor,market_noise) -> list[dict[str,int | str]]:
   """
-  Function to return the season (according to seasons in the Indian subcontinent) 
-  based on month of the year
+  Get dates from Jan 1 2024 to 31 Dec 2025 along with features -
+  month: int,
+  weekday: str,
+  weekend: 0 if weekend else 1,
+  season: str (season according to the Indian Subcontinent)
   """
+  date_range = pd.date_range('2024-01-01','2025-12-31').to_list()
+  temporal_features = list(map(lambda x: processDates(x,base_market_trend,market_trend_factor,market_noise),date_range))  
   
-  if 3 <= month <= 6:
-    return "Summer"
-  
-  elif 7 <= month <= 9:
-    return "Monsoon"
-  
-  else:
-    return "Winter"
-  
-def generate_property_features() -> pd.DataFrame:
+  return temporal_features
+
+def generatePropertyFeatures(base_property_pricings,rating_price_factor,competitor_bias_const) -> dict[str, str | int | float]:
   """
   Function to generate property features for the properties
   """
@@ -63,32 +60,17 @@ def generate_property_features() -> pd.DataFrame:
   # since we only use a max boost of 90 so no rating is completely 5 star
   final_rating = base_rating + amenities_boost + location_boost
   
-  final_norm_rating = (final_rating/300) * 5
-      
-  return pd.DataFrame({
-    'room_type': [property_type],
-    'rating': [round(final_norm_rating,2)],
-    'amenities_score': [amenities_score],
-    'location_score': [location_score]
-  })
-
-def generate_temporal_features() -> list[pd.DataFrame]:
+  final_norm_rating = (final_rating/280) * 5
   
-  date_range = pd.date_range('2024-01-01','2025-12-31').to_list()
-
-  temporal_data_frame = [pd.DataFrame({
-    'date': [date.strftime('%Y-%m-%d')],
-    'month': [date.month],
-    'weekday': [date.day_name()],
-    'weekend': [0 if date.weekday == 5 or date.weekday == 6 else 1],
-    'season': [get_season(date.month)]
-  }) for date in date_range]  
+  property_pricing = base_property_pricings[property_type] + (final_norm_rating - 3.5) * rating_price_factor
   
-  return temporal_data_frame
-
-temporal_data = generate_temporal_features()
-print(f"Temporal data:\n{temporal_data[0]}")
-
-property_features = generate_property_features()
-print(f"Property Features:\n{property_features}")
-
+  competitor_bias = random.uniform(-competitor_bias_const, competitor_bias_const)
+  
+  return {
+    'property_type': property_type,
+    'rating': round(final_norm_rating,2),
+    'amenities_score': amenities_score,
+    'location_score': location_score,
+    'base_price': round(property_pricing,2),
+    'competitor_bias': competitor_bias
+  }
