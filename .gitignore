@@ -28,6 +28,7 @@ env/
 # MLflow
 # =========================
 mlruns/
+mlflow.db
 
 # =========================
 # Model Artifacts
