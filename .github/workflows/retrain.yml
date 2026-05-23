@@ -34,7 +34,7 @@ jobs:
 
       - name: Run Full Retraining Pipeline
         run: |
-          python -m src.main
+          uv run python -m src.main
 
       - name: Upload Trained Models
         uses: actions/upload-artifact@v4
