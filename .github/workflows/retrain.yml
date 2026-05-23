@@ -1,0 +1,63 @@
+name: Weekly Model Retraining
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+
+  workflow_dispatch:
+
+jobs:
+  retrain-model:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install Dependencies
+        run: uv sync
+
+      - name: Create Required Directories
+        run: |
+          mkdir -p models
+          mkdir -p mlruns
+          mkdir -p datasets/raw
+          mkdir -p datasets/processed
+
+      - name: Run Full Retraining Pipeline
+        run: |
+          python -m src.main
+
+      - name: Upload Trained Models
+        uses: actions/upload-artifact@v4
+        with:
+          name: trained-models
+          path: |
+            models/*.pkl
+
+      - name: Upload MLflow Runs
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlflow-runs
+          path: |
+            mlruns/
+
+      - name: Commit Updated Models
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+          git add models/
+          git add mlruns/
+
+          git diff --cached --quiet || git commit -m "Automated weekly retraining"
+
+          git push

@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-import time
 
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -16,7 +15,6 @@ st.markdown(
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
 
-    /* ── Root palette ── */
     :root {
         --bg:        #0d0f14;
         --surface:   #141720;
@@ -25,12 +23,12 @@ st.markdown(
         --accent:    #5b8cff;
         --accent2:   #ff6b6b;
         --accent3:   #43e8b0;
+        --accent4:   #f59e0b;
         --text:      #e8eaf0;
         --muted:     #6b7280;
         --radius:    12px;
     }
 
-    /* ── Global reset ── */
     html, body, [data-testid="stAppViewContainer"] {
         background-color: var(--bg) !important;
         color: var(--text) !important;
@@ -42,13 +40,11 @@ st.markdown(
     [data-testid="stDecoration"] { display: none; }
     #MainMenu { display: none; }
 
-    /* ── Sidebar ── */
     [data-testid="stSidebar"] {
         background: var(--surface) !important;
         border-right: 1px solid var(--border);
     }
 
-    /* ── Sections / cards ── */
     .card {
         background: var(--surface);
         border: 1px solid var(--border);
@@ -74,7 +70,6 @@ st.markdown(
         margin-bottom: 1rem;
     }
 
-    /* ── Big KPI box ── */
     .kpi-wrap {
         background: linear-gradient(135deg, #0d1a3a 0%, #0a1628 100%);
         border: 1px solid var(--accent);
@@ -133,7 +128,53 @@ st.markdown(
         letter-spacing: 0.05em;
     }
 
-    /* ── Sliders ── */
+    /* ── Optimized Price card ── */
+    .price-wrap {
+        background: linear-gradient(135deg, #1a1200 0%, #120d00 100%);
+        border: 1px solid var(--accent4);
+        border-radius: 16px;
+        padding: 1.75rem 2.5rem;
+        text-align: center;
+        box-shadow: 0 0 30px rgba(245,158,11,0.12);
+        position: relative;
+        overflow: hidden;
+        margin-top: 1.25rem;
+    }
+    .price-wrap::after {
+        content: '';
+        position: absolute;
+        bottom: -30px; right: -30px;
+        width: 100px; height: 100px;
+        border-radius: 50%;
+        background: rgba(245,158,11,0.06);
+    }
+    .price-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--accent4);
+        margin-bottom: 0.5rem;
+    }
+    .price-value {
+        font-family: 'DM Mono', monospace;
+        font-size: 3.5rem;
+        font-weight: 500;
+        line-height: 1;
+        color: #fff;
+    }
+    .price-currency {
+        font-size: 1.8rem;
+        color: var(--accent4);
+        margin-right: 4px;
+    }
+    .price-sub {
+        margin-top: 0.6rem;
+        font-size: 0.78rem;
+        color: var(--muted);
+        font-family: 'DM Mono', monospace;
+    }
+
     .stSlider > div > div > div > div {
         background: var(--accent) !important;
     }
@@ -147,7 +188,6 @@ st.markdown(
         font-size: 0.85rem !important;
     }
 
-    /* ── Radio / select ── */
     .stRadio label, .stSelectbox label {
         color: var(--text) !important;
         font-family: 'Syne', sans-serif !important;
@@ -170,14 +210,12 @@ st.markdown(
         color: var(--accent) !important;
     }
 
-    /* ── Select box ── */
     .stSelectbox [data-baseweb="select"] > div {
         background: var(--surface2) !important;
         border-color: var(--border) !important;
         color: var(--text) !important;
     }
 
-    /* ── Status pill ── */
     .pill {
         display: inline-block;
         padding: 0.25rem 0.85rem;
@@ -191,7 +229,6 @@ st.markdown(
     .pill-err   { background: rgba(255,107,107,0.12); color: var(--accent2); border: 1px solid rgba(255,107,107,0.3); }
     .pill-idle  { background: rgba(107,114,128,0.12); color: var(--muted);  border: 1px solid rgba(107,114,128,0.3); }
 
-    /* ── Section header ── */
     .section-header {
         font-size: 1.4rem;
         font-weight: 800;
@@ -203,21 +240,8 @@ st.markdown(
     }
     .section-header span { color: var(--accent); }
 
-    /* ── Value badge next to slider ── */
-    .val-badge {
-        font-family: 'DM Mono', monospace;
-        font-size: 0.78rem;
-        color: var(--accent3);
-        background: rgba(67,232,176,0.1);
-        border: 1px solid rgba(67,232,176,0.25);
-        border-radius: 6px;
-        padding: 1px 8px;
-    }
-
-    /* ── Divider ── */
     hr { border-color: var(--border) !important; margin: 1.5rem 0 !important; }
 
-    /* ── Endpoint input ── */
     .stTextInput input {
         background: var(--surface2) !important;
         border-color: var(--border) !important;
@@ -226,7 +250,6 @@ st.markdown(
         font-size: 0.82rem !important;
     }
 
-    /* ── Number badge ── */
     .num-badge {
         display: inline-flex;
         align-items: center;
@@ -264,25 +287,20 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ── Config row ────────────────────────────────────────────────────────────────
-cfg_col1, cfg_col2 = st.columns([3, 1])
-with cfg_col1:
-    backend_url = st.text_input(
-        "Backend endpoint",
-        value="http://localhost:8000/predict-occupancy",
-        label_visibility="collapsed",
-        placeholder="http://localhost:8000/prdict-occupancy",
-    )
-with cfg_col2:
+# ── Config row (toggle only) ──────────────────────────────────────────────────
+backend_url = "http://localhost:8000/predict-occupancy"
+
+_, toggle_col = st.columns([5, 1])
+with toggle_col:
     auto_update = st.toggle("Live updates", value=True)
 
 st.markdown("<hr/>", unsafe_allow_html=True)
 
-# ── Layout: controls left, KPI right ─────────────────────────────────────────
+# ── Layout ────────────────────────────────────────────────────────────────────
 left, right = st.columns([3, 2], gap="large")
 
 with left:
-    # ── Group 1: Property ─────────────────────────────────────────────────────
+    # Group 1: Property
     st.markdown(
         '<div class="section-header"><span class="num-badge">1</span>Property Details</div>',
         unsafe_allow_html=True,
@@ -318,7 +336,7 @@ with left:
             )
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── Group 2: Events & Context ─────────────────────────────────────────────
+    # Group 2: Events & Context
     st.markdown(
         '<div class="section-header" style="margin-top:0.5rem;"><span class="num-badge">2</span>Events & Context</div>',
         unsafe_allow_html=True,
@@ -335,7 +353,7 @@ with left:
             holiday = 1 if holiday_label == "Yes" else 0
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── Group 3: Market ───────────────────────────────────────────────────────
+    # Group 3: Market
     st.markdown(
         '<div class="section-header" style="margin-top:0.5rem;"><span class="num-badge">3</span>Market Signals</div>',
         unsafe_allow_html=True,
@@ -357,7 +375,7 @@ with left:
         final_price = st.slider("🏷 Final Price (₹)", 0, 6000, 2500, step=50)
         st.markdown("</div>", unsafe_allow_html=True)
 
-# ── Right column: live KPI ────────────────────────────────────────────────────
+# ── Right column placeholders (must be declared before API call) ──────────────
 with right:
     st.markdown(
         '<div class="section-header"><span class="num-badge" style="background:#43e8b0;color:#0d0f14;">◈</span>'
@@ -365,12 +383,22 @@ with right:
         unsafe_allow_html=True,
     )
 
-    kpi_placeholder   = st.empty()
+    kpi_placeholder    = st.empty()
     status_placeholder = st.empty()
-    detail_placeholder = st.empty()
 
-    # ── Summary card ─────────────────────────────────────────────────────────
     st.markdown("<br/>", unsafe_allow_html=True)
+
+    # Optimised pricing section
+    st.markdown(
+        '<div class="section-header"><span class="num-badge" style="background:#f59e0b;color:#0d0f14;">₹</span>'
+        'Optimized Pricing</div>',
+        unsafe_allow_html=True,
+    )
+    price_placeholder = st.empty()
+
+    st.markdown("<br/>", unsafe_allow_html=True)
+
+    # Summary card
     st.markdown(
         '<div class="card"><div class="card-title">Current Input Summary</div>',
         unsafe_allow_html=True,
@@ -384,7 +412,7 @@ with right:
 payload = {
     "property_id":       property_id if property_id else None,
     "location_score":    location_score,
-    "amenitites_score":  amenities_score,   # note: matches backend typo
+    "amenitites_score":  amenities_score,
     "season":            season.lower(),
     "property_type":     property_type,
     "nearby_event":      nearby_event,
@@ -397,25 +425,29 @@ payload = {
 }
 
 # ── Hit endpoint ──────────────────────────────────────────────────────────────
-occupancy_rate = None
-error_msg      = None
-resp = requests.Response()
+occupancy_rate   = None
+optimized_price  = None
+error_msg        = None
+
 if auto_update:
     try:
         resp = requests.post(backend_url, json=payload, timeout=5)
         resp.raise_for_status()
         data = resp.json()
-        occupancy_rate = float(data.get("occupancy_rate", 0))
+        occupancy_rate  = float(data.get("occupancy_rate", 0))
+        raw_price = data.get("optimized_price")
+        if raw_price is not None:
+            optimized_price = float(raw_price)
     except requests.exceptions.ConnectionError:
         error_msg = "Cannot reach backend — is it running?"
     except requests.exceptions.Timeout:
         error_msg = "Request timed out (>5 s)"
-    except requests.exceptions.HTTPError as e:
+    except requests.exceptions.HTTPError:
         error_msg = f"HTTP {resp.status_code}: {resp.text[:120]}"
     except Exception as e:
         error_msg = str(e)[:150]
 
-# ── Render KPI ────────────────────────────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────────────────────
 def occupancy_color(v):
     if v is None:  return "#6b7280"
     if v >= 0.75:  return "#43e8b0"
@@ -423,15 +455,16 @@ def occupancy_color(v):
     return "#ff6b6b"
 
 def occupancy_label(v):
-    if v is None:    return "—"
-    if v >= 0.75:    return "🟢 High Demand"
-    if v >= 0.45:    return "🟡 Moderate"
+    if v is None:  return "—"
+    if v >= 0.75:  return "🟢 High Demand"
+    if v >= 0.45:  return "🟡 Moderate"
     return "🔴 Low Demand"
 
+# ── Render Occupancy KPI ──────────────────────────────────────────────────────
 if occupancy_rate is not None:
-    pct  = round(occupancy_rate * 100, 1)
-    col  = occupancy_color(occupancy_rate)
-    lbl  = occupancy_label(occupancy_rate)
+    pct = round(occupancy_rate * 100, 1)
+    col = occupancy_color(occupancy_rate)
+    lbl = occupancy_label(occupancy_rate)
 
     kpi_placeholder.markdown(
         f"""
@@ -491,17 +524,46 @@ else:
         unsafe_allow_html=True,
     )
 
-# ── Detail ────────────────────────────────────────────────────────────────────
-if occupancy_rate is not None:
-    detail_placeholder.markdown(
+# ── Render Optimized Price ────────────────────────────────────────────────────
+if optimized_price is not None:
+    vs_final = optimized_price - final_price
+    direction = "▲" if vs_final >= 0 else "▼"
+    diff_color = "#43e8b0" if vs_final >= 0 else "#ff6b6b"
+    diff_text  = f"{direction} ₹{abs(vs_final):,.0f} vs final price"
+
+    price_placeholder.markdown(
         f"""
-        <div style="margin-top:1rem;background:#141720;border:1px solid #2a2f45;
-                    border-radius:10px;padding:0.85rem 1rem;">
-            <div style="font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;
-                        color:#6b7280;font-weight:700;margin-bottom:0.6rem;">Raw Response</div>
-            <code style="font-family:'DM Mono',monospace;font-size:0.82rem;color:#43e8b0;">
-                {{ "occupancy_rate": {occupancy_rate} }}
-            </code>
+        <div class="price-wrap">
+            <div class="price-label">Optimized Price</div>
+            <div class="price-value">
+                <span class="price-currency">₹</span>{optimized_price:,.0f}
+            </div>
+            <div class="price-sub" style="color:{diff_color};margin-top:0.5rem;">
+                {diff_text}
+            </div>
+            <div class="price-sub">per night · model recommendation</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+elif error_msg:
+    price_placeholder.markdown(
+        """
+        <div class="price-wrap" style="border-color:#2a2f45;">
+            <div class="price-label" style="color:#6b7280;">Optimized Price</div>
+            <div class="price-value" style="color:#6b7280;">—</div>
+            <div class="price-sub">unavailable</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+else:
+    price_placeholder.markdown(
+        """
+        <div class="price-wrap" style="border-color:#2a2f45;">
+            <div class="price-label" style="color:#6b7280;">Optimized Price</div>
+            <div class="price-value" style="color:#6b7280;">—</div>
+            <div class="price-sub">enable live updates</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -527,10 +589,10 @@ summary_placeholder_r.markdown(
     f"""
     <div style="font-family:'DM Mono',monospace;font-size:0.78rem;
                 line-height:2;color:#9ca3af;">
-        <span style="color:#6b7280;">rating    </span>{rating:.1f}/5<br/>
-        <span style="color:#6b7280;">demand    </span>{demand:.2f}<br/>
-        <span style="color:#6b7280;">comp.price</span>₹{competitor_price}<br/>
-        <span style="color:#6b7280;">trend     </span>{market_trend:.2f}<br/>
+        <span style="color:#6b7280;">rating     </span>{rating:.1f}/5<br/>
+        <span style="color:#6b7280;">demand     </span>{demand:.2f}<br/>
+        <span style="color:#6b7280;">comp.price </span>₹{competitor_price}<br/>
+        <span style="color:#6b7280;">trend      </span>{market_trend:.2f}<br/>
         <span style="color:#6b7280;">final.price</span>₹{final_price}
     </div>
     """,

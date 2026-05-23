@@ -1,8 +1,9 @@
 import joblib
 import pandas as pd
+import numpy as np
 from app.schemas.request_schemas import OccupancyPredictionRequest
 
-model = joblib.load("./app/models/lightgbm_api_model_exp_xgb.pkl")
+model = joblib.load("./models/occupancy_model.pkl")
 
 BASE_PROPERTY_PRICINGS = { 
               "Entire house": 3000,
@@ -77,5 +78,27 @@ def predict_occupancy_rate(features:OccupancyPredictionRequest):
   prediction_df.to_csv("./datasets/request.csv")
   
   print(f"Prediction df: {prediction_df}")
-  return model.predict(prediction_df)[0]
-  
+  return model.predict(prediction_df)[0],prediction_df
+
+def optimize_pricing(prediction_df: pd.DataFrame,max_price_steps = 200):
+    N = len(prediction_df)  
+    M = max_price_steps
+    
+    df_expanded = prediction_df.loc[prediction_df.index.repeat(M)].copy()
+    
+    price_increments = np.tile(np.arange(M) * 5, N)
+    df_expanded['final_price'] = df_expanded['base_price'] + price_increments
+    
+    predicted_occupancies = model.predict(df_expanded)
+    
+    prices_matrix = df_expanded['final_price'].values.reshape(N, M)
+    occupancy_matrix = predicted_occupancies.reshape(N, M)
+    
+    revenue_matrix = prices_matrix * occupancy_matrix
+    
+    best_indices = np.argmax(revenue_matrix, axis=1)
+    best_prices = prices_matrix[np.arange(N), best_indices]
+    
+    max_revenues = np.max(revenue_matrix, axis=1)
+    
+    return best_prices.tolist(), max_revenues.tolist()

@@ -10,7 +10,7 @@ import joblib
 import mlflow
 from mlflow.lightgbm import log_model as lgbm_log_model
 
-def train_model(train_dataset: pd.DataFrame, test_dataset: pd.DataFrame,model_save_path="./models/lightgbm_dynamic_pricing.pkl"):
+def train_model(train_dataset: pd.DataFrame, test_dataset: pd.DataFrame,model_save_path="./models/occupancy_model.pkl"):
 
   train_dataset['date'] = pd.to_datetime(train_dataset['date'])
   test_dataset['date'] = pd.to_datetime(test_dataset['date'])

@@ -1,13 +1,94 @@
-# Python-generated files
+# =========================
+# Python
+# =========================
 __pycache__/
-*.py[oc]
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# =========================
+# Virtual Environments
+# =========================
+.venv/
+venv/
+env/
+
+# =========================
+# Jupyter Notebooks
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# Environment Variables
+# =========================
+.env
+
+# =========================
+# MLflow
+# =========================
+mlruns/
+
+# =========================
+# Model Artifacts
+# =========================
+models/*.pkl
+models/*.joblib
+models/*.h5
+models/*.pt
+
+# =========================
+# Dataset Files
+# =========================
+datasets/raw/
+datasets/processed/
+
+# =========================
+# Generated Reports & Plots
+# =========================
+plots/
+reports/
+
+# =========================
+# Streamlit
+# =========================
+.streamlit/secrets.toml
+
+# =========================
+# IDE Files
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Testing / Coverage
+# =========================
+.pytest_cache/
+.coverage
+htmlcov/
+
+# =========================
+# Build Artifacts
+# =========================
 build/
 dist/
-wheels/
-*.egg-info
+*.egg-info/
 
-# Virtual environments
-.venv
-models/
-datasets/
-optimizations/
+# =========================
+# uv
+# =========================
+.python-version
+
+# Keep uv.lock committed
+# DO NOT ignore uv.lock
