@@ -2,12 +2,18 @@ from fastapi import FastAPI
 from app.schemas.request_schemas import OccupancyPredictionRequest
 from app.services.predictor import predict_occupancy_rate,optimize_pricing
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 app = FastAPI(title="Dynamic Pricing Engine")
 
 origins = [
     "http://localhost:8501",
-    "https://your-streamlit-app.streamlit.app"
+    FRONTEND_URL
 ]
 
 app.add_middleware(
