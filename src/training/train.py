@@ -74,9 +74,7 @@ def train_model(train_dataset: pd.DataFrame, test_dataset: pd.DataFrame,model_sa
 
   MLFLOW_DIR = PROJECT_ROOT / "mlruns"
 
-  mlflow.set_tracking_uri(
-      f"file:{MLFLOW_DIR}"
-  )
+  mlflow.set_tracking_uri(MLFLOW_DIR.as_uri())
   mlflow.set_experiment("price-prediction")
   with mlflow.start_run():
     mlflow.set_tags({
