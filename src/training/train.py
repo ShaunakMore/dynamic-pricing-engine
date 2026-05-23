@@ -67,7 +67,6 @@ def train_model(train_dataset: pd.DataFrame, test_dataset: pd.DataFrame,model_sa
   X_test = X_test.loc[test_valid_idx]
   y_test = y_test.loc[test_valid_idx]
 
-  mlflow.set_tracking_uri("sqlite:///mlflow.db")
   mlflow.set_experiment("price-prediction")
   with mlflow.start_run():
     mlflow.set_tags({
