@@ -290,7 +290,7 @@ The Streamlit dashboard allows users to:
 ## Clone Repository
 
 ```bash
-git clone <YOUR_REPO_URL>
+git clone https://github.com/ShaunakMore/dynamic-pricing-engine
 cd dynamic-pricing-engine
 ```
 
