@@ -1,8 +1,26 @@
 from fastapi import FastAPI
 from app.schemas.request_schemas import OccupancyPredictionRequest
 from app.services.predictor import predict_occupancy_rate,optimize_pricing
-import json
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(title="Dynamic Pricing Engine")
+
+origins = [
+    "http://localhost:8501",
+    "https://your-streamlit-app.streamlit.app"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+
+    allow_origins=origins,
+
+    allow_credentials=True,
+
+    allow_methods=["*"],
+
+    allow_headers=["*"],
+)
 
 @app.get('/')
 async def basic_route():
