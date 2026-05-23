@@ -106,8 +106,8 @@ def train_model(train_dataset: pd.DataFrame, test_dataset: pd.DataFrame,model_sa
       "importance_gain": model.booster_.feature_importance(importance_type="gain"),
       "importance_split":model.booster_.feature_importance(importance_type="split")
     }).sort_values("importance_gain",ascending=False)
-    importance_df.to_csv("feature_importance.csv",index=False)
-    mlflow.log_artifact("feature_importance.csv")
+    importance_df.to_csv("./datasets/processed/feature_importance.csv",index=False)
+    mlflow.log_artifact("./datasets/processed/feature_importance.csv")
     
     print(f"Mean Aboslute Error: {mae}")
     print(f"Mean Squared Error: {mse}")
