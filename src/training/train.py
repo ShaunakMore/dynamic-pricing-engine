@@ -9,6 +9,7 @@ from sklearn.metrics import (
 import joblib
 import mlflow
 from mlflow.lightgbm import log_model as lgbm_log_model
+from pathlib import Path
 
 def train_model(train_dataset: pd.DataFrame, test_dataset: pd.DataFrame,model_save_path="./models/occupancy_model.pkl"):
 
@@ -67,6 +68,15 @@ def train_model(train_dataset: pd.DataFrame, test_dataset: pd.DataFrame,model_sa
   X_test = X_test.loc[test_valid_idx]
   y_test = y_test.loc[test_valid_idx]
 
+
+
+  PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+
+  MLFLOW_DIR = PROJECT_ROOT / "mlruns"
+
+  mlflow.set_tracking_uri(
+      f"file:{MLFLOW_DIR}"
+  )
   mlflow.set_experiment("price-prediction")
   with mlflow.start_run():
     mlflow.set_tags({
@@ -106,6 +116,7 @@ def train_model(train_dataset: pd.DataFrame, test_dataset: pd.DataFrame,model_sa
       "importance_split":model.booster_.feature_importance(importance_type="split")
     }).sort_values("importance_gain",ascending=False)
     importance_df.to_csv("./datasets/processed/feature_importance.csv",index=False)
+    print(mlflow.get_tracking_uri())
     mlflow.log_artifact("./datasets/processed/feature_importance.csv")
     
     print(f"Mean Aboslute Error: {mae}")
