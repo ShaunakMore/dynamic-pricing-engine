@@ -75,8 +75,6 @@ def predict_occupancy_rate(features:OccupancyPredictionRequest):
 )
   prediction_df = prediction_df[model_column_order]
   
-  prediction_df.to_csv("./datasets/request.csv")
-  
   print(f"Prediction df: {prediction_df}")
   return model.predict(prediction_df)[0],prediction_df
 
