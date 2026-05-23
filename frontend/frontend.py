@@ -1,5 +1,11 @@
 import streamlit as st
 import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+BACKEND_URL = os.getenv("BACKEND_URL")
 
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -288,7 +294,7 @@ st.markdown(
 )
 
 # ── Config row (toggle only) ──────────────────────────────────────────────────
-backend_url = "http://localhost:8000/predict-occupancy"
+backend_url = BACKEND_URL
 
 _, toggle_col = st.columns([5, 1])
 with toggle_col:
