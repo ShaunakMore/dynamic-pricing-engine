@@ -32,7 +32,6 @@ mlruns/
 # =========================
 # Model Artifacts
 # =========================
-models/*.pkl
 models/*.joblib
 models/*.h5
 models/*.pt
