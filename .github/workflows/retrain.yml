@@ -56,7 +56,6 @@ jobs:
           git config --global user.email "github-actions@github.com"
 
           git add models/
-          git add mlruns/
 
           git diff --cached --quiet || git commit -m "Automated weekly retraining"
 
