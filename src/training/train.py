@@ -7,8 +7,10 @@ from sklearn.metrics import (
     r2_score
 )
 import joblib
+import mlflow
+from mlflow.lightgbm import log_model as lgbm_log_model
 
-def train_model(train_dataset: pd.DataFrame, test_dataset: pd.DataFrame):
+def train_model(train_dataset: pd.DataFrame, test_dataset: pd.DataFrame,model_save_path="./models/lightgbm_dynamic_pricing.pkl"):
 
   train_dataset['date'] = pd.to_datetime(train_dataset['date'])
   test_dataset['date'] = pd.to_datetime(test_dataset['date'])
@@ -27,7 +29,6 @@ def train_model(train_dataset: pd.DataFrame, test_dataset: pd.DataFrame):
       'date',
       'revenue',
       'occupancy_rate',
-      'Unnamed: 1'
     ]
   )
 
@@ -39,7 +40,6 @@ def train_model(train_dataset: pd.DataFrame, test_dataset: pd.DataFrame):
       'date',
       'revenue',
       'occupancy_rate',
-      'Unnamed: 1'
     ]
   )
 
@@ -67,21 +67,59 @@ def train_model(train_dataset: pd.DataFrame, test_dataset: pd.DataFrame):
   X_test = X_test.loc[test_valid_idx]
   y_test = y_test.loc[test_valid_idx]
 
-  model = LGBMRegressor()
-  model.fit(X_train,y_train)
+  mlflow.set_tracking_uri("sqlite:///mlflow.db")
+  mlflow.set_experiment("price-prediction")
+  with mlflow.start_run():
+    mlflow.set_tags({
+      "train_size": len(X_train),
+      "test_size": len(X_test),
+      "n_features": X_train.shape[1],
+    })
+    model = LGBMRegressor()
+    
+    mlflow.log_params(model.get_params())
+    
+    model.fit(X_train,y_train)
+    
+    preds = np.array(model.predict(X_test))
 
-  preds = np.array(model.predict(X_test))
 
+    mae = mean_absolute_error(y_true=y_test,y_pred=preds)
+    mse = mean_squared_error(y_true=y_test,y_pred=preds)
+    r2_scr = r2_score(y_true=y_test,y_pred=preds)
 
-  mae = mean_absolute_error(y_true=y_test,y_pred=preds)
-  mse = mean_squared_error(y_true=y_test,y_pred=preds)
-  r2_scr = r2_score(y_true=y_test,y_pred=preds)
+    mlflow.log_metric(
+      "mae", 
+      mae
+    )
+    mlflow.log_metric(
+      "mse",
+      mse
+    )
+    mlflow.log_metric(
+      "r2score",
+      r2_scr
+    )
+    
+    importance_df = pd.DataFrame({
+      "features": model.feature_name_,
+      "importance_gain": model.booster_.feature_importance(importance_type="gain"),
+      "importance_split":model.booster_.feature_importance(importance_type="split")
+    }).sort_values("importance_gain",ascending=False)
+    importance_df.to_csv("feature_importance.csv",index=False)
+    mlflow.log_artifact("feature_importance.csv")
+    
+    print(f"Mean Aboslute Error: {mae}")
+    print(f"Mean Squared Error: {mse}")
+    print(f"R2 Score: {r2_scr}")
 
-  print(f"Mean Aboslute Error: {mae}")
-  print(f"Mean Squared Error: {mse}")
-  print(f"R2 Score: {r2_scr}")
-
-  joblib.dump(
-    model,
-    "../models/lightgbm_dynamic_pricing.pkl"
-  )
+    joblib.dump(
+      model,
+      model_save_path
+    )
+    
+    lgbm_log_model(
+      model,
+      name="lightgbm_model"
+    )
+    
